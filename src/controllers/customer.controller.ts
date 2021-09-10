@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
-import { IMailProvider } from "../providers/IMailProvider";
 import { IcustomerRepository } from "../repositories/customer/Icustomer.repository";
+import { CustomerValidator } from "../validators/customer";
 
 export class CustomerController {
-  constructor(private customerRepository: IcustomerRepository){}
+  constructor(private customerRepository: IcustomerRepository, private customerValidator: CustomerValidator){}
 
   async create(request: Request, response: Response){
     try {
-      const customer = await this.customerRepository.create(request.body)
+      const { body } = request
+      if(this.customerValidator.create(body)) throw({code: 400, message: "dados invalidos"})
+      const customer = await this.customerRepository.create(body)
       response.status(201).send({ message: "sucesso ao criar cliente", customerId: customer.id })
     }
     catch(error: any){
